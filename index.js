@@ -2,6 +2,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -16,6 +17,13 @@ async function run() {
     try {
         const usersCollection = client.db('bazarDotComDB').collection('users');
         const productsCollection = client.db('bazarDotComDB').collection('products');
+
+        // jwt
+        app.post('/jwt', (req, res) => {
+            const userInfo = req.body;
+            const token = jwt.sign(userInfo, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1d" });
+            res.send({ token });
+        })
 
         // users [GET]
         app.get('/users', async (req, res) => {
