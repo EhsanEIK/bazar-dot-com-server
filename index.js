@@ -75,6 +75,14 @@ async function run() {
             res.send({ isAdmin: user?.role === 'admin' });
         })
 
+        // check moderator
+        app.get('/users/moderator/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            res.send({ isModerator: user?.role === 'moderator' });
+        })
+
         // users [GET]
         app.get('/users', verifyJWT, verifyModeratorOrAdmin, async (req, res) => {
             const query = {};
