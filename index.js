@@ -91,7 +91,7 @@ async function run() {
         })
 
         // users [POST]
-        app.post('/users', verifyJWT, verifyAdmin, async (req, res) => {
+        app.post('/users', async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
             res.send(result);
