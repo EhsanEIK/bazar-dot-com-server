@@ -43,7 +43,20 @@ async function run() {
                 next();
             }
             else {
-                return res.send({ message: 'user is not admin role' });
+                return res.send({ message: 'user is not admin or moderator role' });
+            }
+        }
+
+        // verify moderator
+        const verifyModeratorOrAdmin = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
+            if (user?.role === 'moderator' || user?.role === 'admin') {
+                next();
+            }
+            else {
+                return res.send({ message: 'user is not admin or moderator role' });
             }
         }
 
@@ -63,7 +76,7 @@ async function run() {
         })
 
         // users [GET]
-        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
+        app.get('/users', verifyJWT, verifyModeratorOrAdmin, async (req, res) => {
             const query = {};
             const users = await usersCollection.find(query).toArray();
             res.send(users);
