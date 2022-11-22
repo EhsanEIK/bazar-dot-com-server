@@ -34,6 +34,19 @@ async function run() {
         const usersCollection = client.db('bazarDotComDB').collection('users');
         const productsCollection = client.db('bazarDotComDB').collection('products');
 
+        // verify admin
+        const verifyAdmin = async (req, res, next) => {
+            const decodedEmail = req.decoded.email;
+            const query = { email: decodedEmail };
+            const user = await usersCollection.findOne(query);
+            if (user?.role === 'admin') {
+                next();
+            }
+            else {
+                return res.send({ message: 'user is not admin role' });
+            }
+        }
+
         // jwt
         app.post('/jwt', (req, res) => {
             const userInfo = req.body;
@@ -42,21 +55,21 @@ async function run() {
         })
 
         // users [GET]
-        app.get('/users', verifyJWT, async (req, res) => {
+        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
             const query = {};
             const users = await usersCollection.find(query).toArray();
             res.send(users);
         })
 
         // users [POST]
-        app.post('/users', verifyJWT, async (req, res) => {
+        app.post('/users', verifyJWT, verifyAdmin, async (req, res) => {
             const user = req.body;
             const result = await usersCollection.insertOne(user);
             res.send(result);
         })
 
         // users [PUT- make admin]
-        app.put('/users/makeAdmin', verifyJWT, async (req, res) => {
+        app.put('/users/makeAdmin', verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
             const user = await usersCollection.findOne(query);
@@ -74,7 +87,7 @@ async function run() {
         })
 
         // users [PUT- make moderator]
-        app.put('/users/makeModerator', verifyJWT, async (req, res) => {
+        app.put('/users/makeModerator', verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
             const user = await usersCollection.findOne(query);
@@ -99,7 +112,7 @@ async function run() {
         })
 
         // products [GET single product]
-        app.get('/products/:id', verifyJWT, async (req, res) => {
+        app.get('/products/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const product = await productsCollection.findOne(query);
@@ -107,14 +120,14 @@ async function run() {
         })
 
         // products [POST]
-        app.post('/products', verifyJWT, async (req, res) => {
+        app.post('/products', verifyJWT, verifyAdmin, async (req, res) => {
             const product = req.body;
             const result = await productsCollection.insertOne(product);
             res.send(result);
         })
 
         // products [PUT]
-        app.put('/products/:id', verifyJWT, async (req, res) => {
+        app.put('/products/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) };
             const options = { upsert: true };
@@ -130,14 +143,12 @@ async function run() {
         })
 
         // products [DELETE]
-        app.delete('/products/:id', verifyJWT, async (req, res) => {
+        app.delete('/products/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const result = await productsCollection.deleteOne(query);
             res.send(result);
         })
-
-
     }
     finally { }
 }
