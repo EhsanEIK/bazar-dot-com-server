@@ -5,6 +5,7 @@ const port = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 
 // middleware
 app.use(cors());
@@ -34,6 +35,7 @@ async function run() {
         const usersCollection = client.db('bazarDotComDB').collection('users');
         const productsCollection = client.db('bazarDotComDB').collection('products');
         const ordersCollection = client.db('bazarDotComDB').collection('orders');
+        const paymentsCollection = client.db('bazarDotComDB').collection('payments');
 
         // verify admin
         const verifyAdmin = async (req, res, next) => {
@@ -205,8 +207,8 @@ async function run() {
 
         // payment related works
         app.post('/create-payment-intent', verifyJWT, async (req, res) => {
-            const booking = req.body;
-            const price = booking.price;
+            const order = req.body;
+            const price = order.price;
             const amount = price * 100;
             const paymentIntent = await stripe.paymentIntents.create({
                 currency: "usd",
@@ -218,6 +220,14 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret,
             })
+        })
+
+        // payment [POST]
+        app.post('/payments', verifyJWT, async (req, res) => {
+            const payment = req.body;
+            console.log(payment)
+            const result = await paymentsCollection.insertOne(payment);
+            res.send(result);
         })
 
     }
