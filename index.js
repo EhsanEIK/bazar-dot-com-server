@@ -33,6 +33,7 @@ async function run() {
     try {
         const usersCollection = client.db('bazarDotComDB').collection('users');
         const productsCollection = client.db('bazarDotComDB').collection('products');
+        const ordersCollection = client.db('bazarDotComDB').collection('orders');
 
         // verify admin
         const verifyAdmin = async (req, res, next) => {
@@ -177,6 +178,13 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const result = await productsCollection.deleteOne(query);
             res.send(result);
+        })
+
+        // orders [GET]
+        app.get('/orders', async (req, res) => {
+            const query = {};
+            const orders = await ordersCollection.find(query).toArray();
+            res.send(orders);
         })
     }
     finally { }
