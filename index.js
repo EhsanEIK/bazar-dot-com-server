@@ -202,6 +202,24 @@ async function run() {
             const result = await ordersCollection.insertOne(order);
             res.send(result);
         })
+
+        // payment related works
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const booking = req.body;
+            const price = booking.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: "usd",
+                amount: amount,
+                "payment_method_types": [
+                    "card"
+                ],
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            })
+        })
+
     }
     finally { }
 }
