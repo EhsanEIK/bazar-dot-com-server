@@ -188,6 +188,14 @@ async function run() {
             res.send(orders);
         })
 
+        // orders [GET-Signle Data]
+        app.get('/orders/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const order = await ordersCollection.findOne(query);
+            res.send(order);
+        })
+
         // orders [POST]
         app.post('/orders', async (req, res) => {
             const order = req.body;
