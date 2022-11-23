@@ -183,7 +183,7 @@ async function run() {
         })
 
         // orders [GET]
-        app.get('/orders', async (req, res) => {
+        app.get('/orders', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
             const orders = await ordersCollection.find(query).toArray();
@@ -191,7 +191,7 @@ async function run() {
         })
 
         // orders [GET-Signle Data]
-        app.get('/orders/:id', async (req, res) => {
+        app.get('/orders/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
             const order = await ordersCollection.findOne(query);
@@ -199,7 +199,7 @@ async function run() {
         })
 
         // orders [POST]
-        app.post('/orders', async (req, res) => {
+        app.post('/orders', verifyJWT, async (req, res) => {
             const order = req.body;
             const result = await ordersCollection.insertOne(order);
             res.send(result);
@@ -225,8 +225,16 @@ async function run() {
         // payment [POST]
         app.post('/payments', verifyJWT, async (req, res) => {
             const payment = req.body;
-            console.log(payment)
             const result = await paymentsCollection.insertOne(payment);
+
+            const id = payment.orderId;
+            const query = { _id: ObjectId(id) };
+            const updateOrder = {
+                $set: {
+                    paid: 'true',
+                }
+            };
+            const updateOrderResult = await ordersCollection.updateOne(query, updateOrder);
             res.send(result);
         })
 
